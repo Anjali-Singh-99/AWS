@@ -1,0 +1,26 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_REGISTRY_USERNAME: /sample-python-project/myapp/docker_creds/username
+    DOCKER_REGISTRY_PASSWORD: /sample-python-project/myapp/docker_creds/password
+    DOCKER_REGISTRY_URL: /sample-python-project/myapp/docker_creds/url
+  
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+  pre_build:
+    commands:
+      - echo "installing dependencies"
+      - pip install -r sample-flask-project-for-cicd/requirements.txt
+  build:
+    commands:
+      - cd sample-flask-project-for-cicd/
+      - echo "build docker image"
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest" .
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest"
+  post_build:
+    commands:
+      - echo "build completed"
